@@ -13,6 +13,13 @@ export default function Budget() {
   const shipping = 50000
   const total = subtotal + shipping
 
+  const money = v =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 0,
+    }).format(v)
+
   return (
     <div style={{ maxWidth: 800, margin: "auto" }}>
       <h1>Presupuesto</h1>
@@ -29,7 +36,7 @@ export default function Budget() {
           }}
         >
           <h3>{p.name}</h3>
-          <p>Precio unitario: ${p.price}</p>
+          <p>Precio unitario: {money(p.price)}</p>
 
           <div>
             <button onClick={() => removeOne(p.id)}>-</button>
@@ -54,9 +61,9 @@ export default function Budget() {
             paddingTop: 10,
           }}
         >
-          <p>Subtotal: ${subtotal}</p>
-          <p>Envío: ${shipping}</p>
-          <h2>Total: ${total}</h2>
+          <p>Subtotal: {money(subtotal)}</p>
+          <p>Envío: {money(shipping)}</p>
+          <h2>Total: {money(total)}</h2>
 
           <button
             style={{ marginTop: 10 }}

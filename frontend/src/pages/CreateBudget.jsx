@@ -1,6 +1,13 @@
 import { useCart } from "../context/CartContext"
 import html2pdf from "html2pdf.js"
 
+const money = v =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(v)
+
 export default function CreateBudget() {
   const {
     cart,
@@ -9,6 +16,8 @@ export default function CreateBudget() {
     removeFromCart,
     budgetNumber,
     createBudget,
+    clientEmail,
+    setClientEmail,
   } = useCart()
 
   const subtotal = cart.reduce(
@@ -49,9 +58,15 @@ export default function CreateBudget() {
     )
   }
 
-  const handleCreateBudget = () => {
-    generatePDF()
-    createBudget()
+  const handleCreateBudget = async () => {
+    try {
+      const saved = await createBudget()
+      // generar PDF después de guardar (usa number retornado si existe)
+      generatePDF()
+      alert("Presupuesto creado: N° " + (saved.number || budgetNumber))
+    } catch (err) {
+      alert("Error al crear presupuesto")
+    }
   }
 
   return (
@@ -70,9 +85,9 @@ export default function CreateBudget() {
           }}
         >
           <strong>{p.name}</strong>
-          <p>
-            ${p.price} × {p.qty} = ${p.price * p.qty}
-          </p>
+            <p>
+              {money(p.price)} × {p.qty} = {money(p.price * p.qty)}
+            </p>
 
           <button onClick={() => decreaseQty(p.id)}>−</button>
           <button onClick={() => increaseQty(p.id)}>+</button>
@@ -81,9 +96,21 @@ export default function CreateBudget() {
       ))}
 
       <hr />
-      <p>Subtotal: ${subtotal}</p>
-      <p>Envío: ${shipping}</p>
-      <h2>Total: ${total}</h2>
+      <p>Subtotal: {money(subtotal)}</p>
+      <p>Envío: {money(shipping)}</p>
+      <h2>Total: {money(total)}</h2>
+
+      <div style={{ marginTop: 20 }}>
+        <label htmlFor="clientEmail">Email del cliente:</label>
+        <input
+          id="clientEmail"
+          type="email"
+          value={clientEmail}
+          onChange={(e) => setClientEmail(e.target.value)}
+          placeholder="cliente@ejemplo.com"
+          style={{ marginLeft: 10, padding: 5, width: 250 }}
+        />
+      </div>
 
       <div style={{ marginTop: 20 }}>
         <button onClick={handleCreateBudget}>💾 Crear presupuesto</button>
@@ -101,7 +128,7 @@ export default function CreateBudget() {
       {/* Contenido oculto para PDF */}
       <div
         id="budget-pdf"
-        style={{ padding: 20, marginTop: 40, display: "none" }}
+        style={{ padding: 20, marginTop: 40, visibility: "hidden" }}
       >
         <h1>PRESUPUESTO N° {budgetNumber}</h1>
         <h2>Triphase Ingeniería y Servicios SRL</h2>
@@ -109,13 +136,13 @@ export default function CreateBudget() {
         <hr />
         {cart.map(p => (
           <p key={p.id}>
-            {p.name} — {p.qty} × ${p.price} = ${p.price * p.qty}
+            {p.name} — {p.qty} × {money(p.price)} = {money(p.price * p.qty)}
           </p>
         ))}
         <hr />
-        <p>Subtotal: ${subtotal}</p>
-        <p>Envío: ${shipping}</p>
-        <h2>Total: ${total}</h2>
+        <p>Subtotal: {money(subtotal)}</p>
+        <p>Envío: {money(shipping)}</p>
+        <h2>Total: {money(total)}</h2>
       </div>
     </div>
   )

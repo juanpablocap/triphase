@@ -5,6 +5,7 @@ const CartContext = createContext()
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([])
   const [budgetNumber, setBudgetNumber] = useState(1) // contador de presupuestos
+  const [clientEmail, setClientEmail] = useState("")
 
   const addToCart = product => {
     setCart(prev => {
@@ -44,9 +45,40 @@ export function CartProvider({ children }) {
     )
   }
 
-  const createBudget = () => {
-    setBudgetNumber(prev => prev + 1)
-    setCart([]) // vaciar carrito después de crear presupuesto
+  const createBudget = async () => {
+    // Preparar payload denormalizado para backend
+    const payload = {
+      products: cart.map(p => ({ name: p.name, qty: p.qty, price: p.price })),
+      subtotal: cart.reduce((acc, p) => acc + p.price * p.qty, 0),
+      shipping: cart.length ? 50000 : 0,
+      total:
+        cart.reduce((acc, p) => acc + p.price * p.qty, 0) + (cart.length ? 50000 : 0),
+      clientEmail,
+    }
+
+    try {
+      const res = await fetch("/api/budgets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error("Error creating budget")
+
+      const saved = await res.json()
+      // backend asigna `number`
+      if (saved && saved.number) {
+        setBudgetNumber(saved.number)
+      } else {
+        setBudgetNumber(prev => prev + 1)
+      }
+
+      setCart([]) // vaciar carrito después de crear presupuesto
+      return saved
+    } catch (err) {
+      console.error(err)
+      throw err
+    }
   }
 
   return (
@@ -59,6 +91,8 @@ export function CartProvider({ children }) {
         decreaseQty,
         budgetNumber,
         createBudget,
+        clientEmail,
+        setClientEmail,
       }}
     >
       {children}

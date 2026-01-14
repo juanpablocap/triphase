@@ -1,10 +1,37 @@
-import { products } from "../data/products"
+import { products as localProducts } from "../data/products"
 import { useCart } from "../context/CartContext"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export default function Products() {
   const { addToCart } = useCart()
   const [selectedCategory, setSelectedCategory] = useState("Todos")
+
+  const [products, setProducts] = useState(localProducts)
+
+  useEffect(() => {
+    let mounted = true
+    fetch("/api/products")
+      .then(r => r.json())
+      .then(data => {
+        if (mounted && Array.isArray(data) && data.length) {
+          // map backend _id to id for compatibility
+          setProducts(
+            data.map(p => ({
+              id: p._id || p.id,
+              name: p.name,
+              category: p.category,
+              subcategory: p.subcategory,
+              price: p.price,
+            }))
+          )
+        }
+      })
+      .catch(() => {
+        // fallback a datos locales ya cargados
+      })
+
+    return () => (mounted = false)
+  }, [])
 
   // obtener categorías únicas
   const categories = ["Todos", ...new Set(products.map(p => p.category))]

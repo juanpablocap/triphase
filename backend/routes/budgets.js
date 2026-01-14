@@ -16,6 +16,14 @@ router.get("/", async (req, res) => {
 // Crear presupuesto con numeración automática
 router.post("/", async (req, res) => {
   try {
+    const { products, subtotal, shipping, total } = req.body
+    if (!Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ error: "Products array required" })
+    }
+    if (typeof subtotal !== "number" || typeof total !== "number") {
+      return res.status(400).json({ error: "Subtotal and total must be numbers" })
+    }
+
     const lastBudget = await Budget.findOne()
       .sort({ number: -1 })
       .limit(1)
@@ -23,7 +31,7 @@ router.post("/", async (req, res) => {
 
     const newBudget = new Budget({ ...req.body, number })
     const saved = await newBudget.save()
-    res.json(saved)
+    res.status(201).json(saved)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
