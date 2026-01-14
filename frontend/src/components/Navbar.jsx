@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext"
 import { useCart } from "../context/CartContext"
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { isLoggedIn, logout } = useAuth()
   const { cart } = useCart()
 
   const cartCount = cart.reduce((acc, p) => acc + p.qty, 0)
@@ -31,9 +31,9 @@ export default function Navbar() {
       <Link to="/contact">Contacto</Link>
 
       <div style={{ marginLeft: "auto" }}>
-        {user ? (
+        {isLoggedIn ? (
           <>
-            <span style={{ marginRight: 10 }}>👤 {user}</span>
+            <Link to="/admin" style={{ marginRight: 10 }}>Admin</Link>
             <button onClick={logout}>Salir</button>
           </>
         ) : (
