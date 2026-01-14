@@ -9,25 +9,17 @@ export default function Login() {
   const navigate = useNavigate()
 
   const handleLogin = async () => {
-    const res = await fetch("http://localhost:4000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    })
-
-    if (!res.ok) {
+    try {
+      await login(email, password)
+      navigate("/admin")
+    } catch (err) {
       alert("Credenciales incorrectas")
-      return
     }
-
-    const data = await res.json()
-    login(data.token)
-    navigate("/") // 🔥 vuelve al home ya logueado
   }
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Login</h1>
+      <h1>Login Admin</h1>
 
       <input
         placeholder="Email"

@@ -1,5 +1,6 @@
 import express from "express"
 import Product from "../models/Product.js"
+import { verifyToken } from "./auth.js"
 
 const router = express.Router()
 
@@ -14,7 +15,7 @@ router.get("/", async (req, res) => {
 })
 
 // Crear producto
-router.post("/", async (req, res) => {
+router.post("/", verifyToken, async (req, res) => {
   try {
     const { name, category, subcategory, price } = req.body
     if (!name || !category || !subcategory || typeof price !== "number") {
